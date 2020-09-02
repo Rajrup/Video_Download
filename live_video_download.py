@@ -2,18 +2,11 @@ import os
 from tqdm import tqdm
 import re
 import pickle
+import datetime
 import multiprocessing as mp
 
-N_CPU = 5
+N_CPU = 7
 DURATION = '20:00'
-
-#download first 500 files 
-def construct_output_filename(output_dir,yt_id,start_time,end_time,trim_format='%06d'):
-    basename = '%s_%s_%s.mp4' % (yt_id,
-                                 trim_format % start_time,
-                                 trim_format % end_time)
-    output_filename = os.path.join(output_dir,basename)
-    return output_filename
 
 def oscall(command):
     print("Command: ", command)
@@ -53,13 +46,18 @@ def download_data(url_file, out_folder):
         pickle.dump(failed_file_list,f)
 
 
-def download_data_mp(url_file, out_folder):
+# Download parallely
+def download_data_mp(url_file, out_folder, folder_timestamp=False):
 
     with open('stream_urls.txt') as f:
         urls = f.read().splitlines()
         url_tags = [re.split('/|\.', l)[-4] for l in urls]
     print("URLS: ", urls)
     print("URL TAGS: ", url_tags)
+
+    if folder_timestamp:
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H_%M_%S")
+        out_folder = os.path.join(out_folder, timestamp)
 
     if not os.path.exists(out_folder):
         os.makedirs(out_folder)
@@ -81,4 +79,4 @@ def download_data_mp(url_file, out_folder):
 if __name__ == '__main__':
     out_folder="/data/rajrup/Project/D2/Video_Download/out_videos"
     url_file="stream_urls.txt"
-    download_data_mp(url_file, out_folder)
+    download_data_mp(url_file, out_folder, folder_timestamp=True)
